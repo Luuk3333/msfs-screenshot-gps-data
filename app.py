@@ -10,10 +10,53 @@ import io
 from distutils.dir_util import copy_tree
 import psutil
 from SimConnect import *
+import configparser
 
-DEBUG = True        # Print more information for debugging purposes when set to true
-OVERWRITE = False   # Set to true to disable exiftool creating a backup before adding the EXIF data.
-WATCH_DIR = os.path.join(os.path.expanduser('~') + "\\Pictures\\Screenshots")   # Directory containing screenshots to watch for changes. # By default '%USERPROFILE%\Pictures\Screenshots'.
+CONFIG_FILE = 'msfs-screenshot-gps-data.ini'
+DEFAULT_PREFERENCES = {
+    'General': [
+        {
+            'name': 'WatchDirectory',
+            'value': os.path.join(os.path.expanduser('~') + "\\Pictures\\Screenshots"),
+            'comment': "Directory containing screenshots to watch for changes. By default '%USERPROFILE%\Pictures\Screenshots'."
+        },
+        {
+            'name': 'Overwrite',
+            'value': False,
+            'comment': 'Set to true to disable exiftool creating a backup before adding the EXIF data.'
+        }
+    ],
+    'Developer': [
+        {
+            'name': 'Debug',
+            'value': False,
+            'comment': 'Print more information for debugging purposes when set to true.'
+        }
+    ]
+}
+
+# Create config file if it doesn't exist
+if not os.path.isfile(CONFIG_FILE):
+    with open(CONFIG_FILE, 'w') as file:
+        output = ''
+
+        for section, preferences in DEFAULT_PREFERENCES.items():
+            output = output + '\n\n[{}]'.format(section)
+
+            for preference in preferences:
+                output = output + '\n{} = {}'.format(preference['name'], preference['value'])
+                output = output + '\n; {}'.format(preference['comment'])
+
+        output = output.strip() + '\n'
+        file.write(output)
+
+# Load the configuration file
+config = configparser.ConfigParser()
+config.read(CONFIG_FILE)
+
+WATCH_DIR = config.get('General', 'WatchDirectory')
+OVERWRITE = config.getboolean('General', 'Overwrite')
+DEBUG = config.getboolean('Developer', 'Debug')
 
 # Download 'exiftool' (https://exiftool.org/)
 exiftool = './exiftool(-k).exe'
@@ -41,8 +84,6 @@ class MyHandler(PatternMatchingEventHandler):
 
         if DEBUG:
             print("event: src_path='{}', event_type='{}'".format(event.src_path, event.event_type))
-
-        print('Watching for changes..')
 
     def on_modified(self, event):
         self.process(event)
@@ -106,7 +147,7 @@ class MyHandler(PatternMatchingEventHandler):
         process = subprocess.Popen(cmdline, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         process.communicate(input=b'\n')    # Pass exiftool's '-- press ENTER --'
 
-        print('Finished.')
+        print('Finished. Watching for changes..')
 
         self.process(event)
 
