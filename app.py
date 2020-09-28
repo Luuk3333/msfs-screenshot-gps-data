@@ -8,6 +8,7 @@ import requests
 import zipfile
 import io
 from distutils.dir_util import copy_tree
+import psutil
 
 DEBUG = True        # Print more information for debugging purposes when set to true
 OVERWRITE = False   # Set to true to disable exiftool creating a backup before adding the EXIF data.
@@ -16,7 +17,7 @@ WATCH_DIR = os.path.join(os.path.expanduser('~') + "\\Pictures\\Screenshots")   
 # Download 'exiftool' (https://exiftool.org/)
 exiftool = './exiftool(-k).exe'
 if not os.path.isfile(exiftool):
-    print("Downloading 'exiftool'..", end='')
+    print("Downloading 'exiftool'..", end='', flush=True)
     url = 'https://exiftool.org/exiftool-12.06.zip'
     request = requests.get(url)
     archive = zipfile.ZipFile(io.BytesIO(request.content))
@@ -26,7 +27,7 @@ if not os.path.isfile(exiftool):
 # Download 'Python-SimConnect' (https://github.com/odwdinc/Python-SimConnect)
 simconnect_dir = 'SimConnect/'
 if not os.path.isdir(simconnect_dir):
-    print("Downloading 'Python-SimConnect'..", end='')
+    print("Downloading 'Python-SimConnect'..", end='', flush=True)
     os.mkdir(simconnect_dir)
     
     url = 'https://github.com/odwdinc/Python-SimConnect/archive/05263a861ad5fad6e5783bc331567f42151ee72e.zip'
@@ -59,15 +60,22 @@ class MyHandler(PatternMatchingEventHandler):
         event.src_path
             path/to/observed/file
         """
-        # the file will be processed there
+
         if DEBUG:
-            print(event.src_path, event.event_type)  # print now only for degug
+            print("event: src_path='{}', event_type='{}'".format(event.src_path, event.event_type))
+
+        print('Watching for changes..')
 
     def on_modified(self, event):
         self.process(event)
 
     def on_created(self, event):
         print("\nFile created: '{}'.".format(event.src_path))
+
+        # Check if sim is running (https://stackoverflow.com/a/7788702)
+        if not 'FlightSimulator.exe' in (p.name() for p in psutil.process_iter()):
+            print('Warning: The simulator is not running. Not going to add GPS data to this file.')
+            return
 
         # Connect to sim
         print('Getting data from sim..')
@@ -84,6 +92,11 @@ class MyHandler(PatternMatchingEventHandler):
 
         # Disconnect from sim
         sm.exit()
+
+        # Check if player is not in flight
+        if round(data['GPSLatitude'], 2) < 0.1 and round(data['GPSLongitude'], 2) < 0.1 and data['GPSSpeed'] < 0.1:
+            print('Warning: It looks like the player is in a menu. Not going to add GPS data to this file.')
+            return
 
         data['GPSSpeed'] = data['GPSSpeed']*3.6     # Convert m/s to km/h
         data['GPSSpeedRef'] = 'km/h'                # Set unit to km/h (https://exiftool.org/TagNames/GPS.html)
@@ -115,7 +128,7 @@ class MyHandler(PatternMatchingEventHandler):
         process = subprocess.Popen(cmdline, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         process.communicate(input=b'\n')    # Pass exiftool's '-- press ENTER --'
 
-        print('Finished. Watching for changes..')
+        print('Finished.')
 
         self.process(event)
 
