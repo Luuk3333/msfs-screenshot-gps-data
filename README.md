@@ -9,3 +9,5 @@ Installation:
 - Install dependencies: `pip3 install -r requirements.txt`
 - Take a look at the user preferences near the top of the file `app.py`. By default the built-in Windows screenshot directory is used located at `%USERPROFILE%\Pictures\Screenshots` (press WIN+PRINTSCREEN to capture a screenshot).
 - Run the application: `python3 app.py`
+
+This project includes unmodified source code (the directory `SimConnect/`) of the project '[Python-SimConnect](https://github.com/odwdinc/Python-SimConnect)' by odwdinc licensed under the 'GNU Affero General Public License v3.0' (located at `SimConnect/LICENSE`) to interface with the simulator.

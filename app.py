@@ -9,6 +9,7 @@ import zipfile
 import io
 from distutils.dir_util import copy_tree
 import psutil
+from SimConnect import *
 
 DEBUG = True        # Print more information for debugging purposes when set to true
 OVERWRITE = False   # Set to true to disable exiftool creating a backup before adding the EXIF data.
@@ -24,29 +25,6 @@ if not os.path.isfile(exiftool):
     archive.extractall()
     print('  --> Done.')
 
-# Download 'Python-SimConnect' (https://github.com/odwdinc/Python-SimConnect)
-simconnect_dir = 'SimConnect/'
-if not os.path.isdir(simconnect_dir):
-    print("Downloading 'Python-SimConnect'..", end='', flush=True)
-    os.mkdir(simconnect_dir)
-    
-    url = 'https://github.com/odwdinc/Python-SimConnect/archive/05263a861ad5fad6e5783bc331567f42151ee72e.zip'
-    request = requests.get(url)
-    archive = zipfile.ZipFile(io.BytesIO(request.content))
-
-    # Only unzip files in 'SimConnect' subdirectory
-    for file in archive.namelist():
-        if os.path.dirname(file).lower().endswith('simconnect') and not file.endswith('/'):
-            newfile = os.path.join(os.getcwd(), simconnect_dir, os.path.basename(file))
-            
-            if DEBUG:
-                print("Unzipping file '{}' to '{}'.".format(file, newfile))
-
-            with open(newfile, 'wb') as f:
-                f.write(archive.read(file))
-    print('  --> Done.')
-
-from SimConnect import *
 
 class MyHandler(PatternMatchingEventHandler):
     patterns = ['*.jpg', '*.jpeg', '*.png']
