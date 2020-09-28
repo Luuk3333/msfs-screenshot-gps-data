@@ -101,7 +101,7 @@ class MyHandler(PatternMatchingEventHandler):
             cmdline.append('-overwrite_original')
 
         if DEBUG:
-            cmdline.append('-verbose=3')
+            cmdline.append('-verbose')
 
         cmdline.append(event.src_path)
 
