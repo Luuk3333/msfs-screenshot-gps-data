@@ -1,4 +1,3 @@
 psutil
 requests
-subprocess
-zipfile
+watchdog
