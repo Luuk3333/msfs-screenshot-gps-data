@@ -12,7 +12,11 @@ import psutil
 from SimConnect import *
 import configparser
 
-CONFIG_FILE = 'msfs-screenshot-gps-data.ini'
+TITLE = 'msfs-screenshot-gps-data'
+VERSION = 'v0.1'
+print('{} {}'.format(TITLE, VERSION))
+
+CONFIG_FILE = '{}-{}.ini'.format(TITLE, VERSION)
 DEFAULT_PREFERENCES = {
     'General': [
         {
