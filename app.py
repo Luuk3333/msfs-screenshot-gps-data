@@ -121,8 +121,19 @@ class MyHandler(PatternMatchingEventHandler):
             print('Warning: It looks like the player is in a menu. Not going to add GPS data to this file.')
             return
 
+        # Set additional tags (https://exiftool.org/TagNames/GPS.html)
+        data['GPSLatitudeRef'] = 'North'
+        if data['GPSLatitude'] < 0:
+            data['GPSLatitudeRef'] = 'South'
+
+        data['GPSLongitudeRef'] = 'East'
+        if data['GPSLongitude'] < 0:
+            data['GPSLongitudeRef'] = 'West'
+
+        data['GPSAltitudeRef'] = 'Above Sea Level'
+
         data['GPSSpeed'] = round(data['GPSSpeed']*3.6, 2)   # Convert m/s to km/h
-        data['GPSSpeedRef'] = 'km/h'                        # Set unit to km/h (https://exiftool.org/TagNames/GPS.html)
+        data['GPSSpeedRef'] = 'km/h'                        # Set unit to km/h
 
         # Compile exiftool command
         cmdline = [exiftool]
