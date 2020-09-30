@@ -107,10 +107,10 @@ class MyHandler(PatternMatchingEventHandler):
 
         # Get data from sim
         data = {
-            'GPSLatitude': aq.get("GPS_POSITION_LAT"),      # degrees
-            'GPSLongitude': aq.get("GPS_POSITION_LON"),     # degrees
-            'GPSAltitude': aq.get('GPS_POSITION_ALT'),      # meter
-            'GPSSpeed': aq.get('GPS_GROUND_SPEED')          # m/s
+            'GPSLatitude': round(aq.get("GPS_POSITION_LAT"), 5),    # degrees
+            'GPSLongitude': round(aq.get("GPS_POSITION_LON"), 5),   # degrees
+            'GPSAltitude': round(aq.get('GPS_POSITION_ALT'), 2),    # meter
+            'GPSSpeed': aq.get('GPS_GROUND_SPEED')                  # m/s
         }
 
         # Disconnect from sim
@@ -121,8 +121,8 @@ class MyHandler(PatternMatchingEventHandler):
             print('Warning: It looks like the player is in a menu. Not going to add GPS data to this file.')
             return
 
-        data['GPSSpeed'] = data['GPSSpeed']*3.6     # Convert m/s to km/h
-        data['GPSSpeedRef'] = 'km/h'                # Set unit to km/h (https://exiftool.org/TagNames/GPS.html)
+        data['GPSSpeed'] = round(data['GPSSpeed']*3.6, 2)   # Convert m/s to km/h
+        data['GPSSpeedRef'] = 'km/h'                        # Set unit to km/h (https://exiftool.org/TagNames/GPS.html)
 
         # Compile exiftool command
         cmdline = [exiftool]
